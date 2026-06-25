@@ -6,6 +6,9 @@ docs/source/_themes/
 *egg-info/
 dist/
 
+# uv / virtual environments
+.venv/
+
 *.c
 *.so
 *.pyd
@@ -33,3 +36,5 @@ notebooks/wip
 *.mat
 _*
 docs/source/modules/generated
+.mcp.json
+.spec-checker-logs/

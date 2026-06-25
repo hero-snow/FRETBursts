@@ -21,17 +21,16 @@ keywords = ["single-molecule FRET","smFRET", "burst-analysis", "biophysics"]
 classifiers = [
     "Intended Audience :: Science/Research",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering"
  ]
-requires-python = ">= 3.7"
+requires-python = ">= 3.10"
 dependencies = [
-    "importlib_metadata;python_version<='3.9'",
-    "numpy>=1.19", 
+    "numpy>=1.19",
     "scipy>=1.2", 
     "pandas >= 0.23",
     "seaborn>=0.11.1",
@@ -50,6 +49,21 @@ Repository = "https://github.com/OpenSMFS/FRETBursts/issues"
 scientific = ["jupyter", "matplotlib>=3.0.1"]
 gui = ["matplotlib>=3.0.1", "PyQt5"]
 
+[dependency-groups]
+# Development-only deps (PEP 735). Installed by `uv sync`, excluded from the
+# published package. Install with: uv sync
+dev = [
+    "pytest>=8",
+    "ruff>=0.11",
+    # numba backs the phrates numba kernels. numba>=0.66 ships Python 3.14
+    # wheels, so no version gate is needed.
+    "numba>=0.66",
+    # Notebook-based test harness (notebooks/nbrun.py)
+    "nbconvert>=7",
+    "nbformat>=5",
+    "ipykernel>=6",
+]
+
 [tool.setuptools.packages.find]
 include = ['fretbursts*']
 
@@ -60,3 +74,4 @@ fretbursts = ["phtools/*.pyx", ]
 version_scheme = "post-release"
 
 [tool.pytest.ini_options]
+testpaths = ["tests"]

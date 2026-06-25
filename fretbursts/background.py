@@ -17,6 +17,7 @@ See also :func:`exp_hist_fit` for background estimation using an histogram fit.
 """
 
 import numpy as np
+from scipy.integrate import trapezoid
 from .ph_sel import Ph_sel
 from .utils.misc import pprint
 from .fit import exp_fitting
@@ -44,7 +45,7 @@ def _compute_error(residuals, x_residuals, error_metrics):
     if error_metrics == 'KS':
         error = np.abs(residuals).max()*100
     elif error_metrics == 'CM':
-        error = np.trapz(residuals**2, x=x_residuals)
+        error = trapezoid(residuals**2, x=x_residuals)
     return error
 
 def _exp_fit_generic(ph, fit_fun, tail_min_us=None, tail_min_p=0.1,

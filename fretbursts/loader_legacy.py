@@ -324,7 +324,7 @@ def hdf5(fname, ondisk=False):
                 det_specs = ph_group.detectors_specs
                 donor = det_specs.donor.read()
                 accept = det_specs.acceptor.read()
-                if ph_group.detectors.dtype == np.bool:
+                if ph_group.detectors.dtype == np.bool_:
                     a_em = ph_group.detectors.read()
                     if not accept:
                         np.logical_not(a_em, out=a_em)

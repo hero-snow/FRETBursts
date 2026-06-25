@@ -42,6 +42,7 @@ from numpy import arange, r_
 from scipy.stats import norm as norm
 from scipy.stats import erlang, gaussian_kde
 from scipy.interpolate import UnivariateSpline
+from scipy.integrate import trapezoid
 
 # Graphics imports
 import matplotlib.pyplot as plt
@@ -1098,7 +1099,7 @@ def _fitted_E_plot(d, i=0, F=1, no_E=False, ax=None, show_model=True,
             ax2.fill_between(x, scale*y, lw=lw, alpha=alpha, edgecolor=color,
                              facecolor=fillcolor, zorder=10)
         if verbose:
-            print('Fit Integral:', np.trapz(scale*y, x))
+            print('Fit Integral:', trapezoid(scale*y, x))
 
     ax2.axvline(d.E_fit[i], lw=3, color=red, ls='--', alpha=0.6)
     xtext = 0.6 if d.E_fit[i] < 0.6 else 0.2
@@ -1851,8 +1852,8 @@ def hist_mdelays(d, i=0, m=10, bins_s=(0, 10, 0.02), period=0,
     max_delay_th_F = m/rate_ch_kcps/d.F
 
     burst_domain = bin_x < max_delay_th_F
-    burst_integral = np.trapz(x=bin_x[burst_domain],
-                              y=mdelays_hist_y[burst_domain])
+    burst_integral = trapezoid(x=bin_x[burst_domain],
+                               y=mdelays_hist_y[burst_domain])
 
     ax.set_title("I = %.1f %%" % (burst_integral*100), fontsize='small')
     #text(0.8,0.8,"I = %.1f %%" % (integr*100), transform = gca().transAxes)
