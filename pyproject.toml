@@ -75,3 +75,28 @@ version_scheme = "post-release"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+
+[tool.ruff.lint]
+# Broad but pragmatic set: pyflakes/pycodestyle errors + warnings, isort,
+# pyupgrade, bugbear, flake8-comprehensions. Formatting-owned rules (E501)
+# are deferred to the future `ruff format` step.
+select = ["E", "F", "W", "I", "UP", "B", "C4"]
+ignore = [
+    "E501",  # line-too-long — will be handled when `ruff format` is adopted
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Legacy / demo / dead modules with undefined-name (F821) and star-import
+# noise. These are slated for the dead-code cleanup step (roadmap #6); silence
+# them here rather than churn code that is about to be removed or rewritten.
+"fretbursts/burst_plot_attic.py" = ["F821"]
+"fretbursts/poisson_threshold.py" = ["F821"]
+"fretbursts/legacy_mode.py" = ["F403", "F405", "F821"]
+"fretbursts/fit/gaussian_fitting.py" = ["F821"]
+"fretbursts/fit/compare_gaussian_fit2.py" = ["F821"]
+"fretbursts/fit/exp_gauss_fitting.py" = ["F821"]
+"fretbursts/dataload/multi_ch_reader.py" = ["F821"]

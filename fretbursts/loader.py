@@ -14,20 +14,21 @@ to return a `Data()` object. The low-level functions that perform the binary
 loading and preprocessing can be found in the `dataload` folder.
 """
 
+import logging
 import os
 from collections.abc import Iterable
+
 import numpy as np
-import tables
-
-from phconvert.smreader import load_sm
-from .dataload.spcreader import load_spc
-from .burstlib import Data
-from .utils.misc import selection_mask
-from . import loader_legacy
-from .burstlib_ext import group_data
 import phconvert as phc
+import tables
+from phconvert.smreader import load_sm
 
-import logging
+from . import loader_legacy
+from .burstlib import Data
+from .burstlib_ext import group_data
+from .dataload.spcreader import load_spc
+from .utils.misc import selection_mask
+
 log = logging.getLogger(__name__)
 
 
@@ -348,13 +349,13 @@ def photon_hdf5(filename, ondisk=False, require_setup=True, validate=False, fix_
     filename = str(filename)
     assert os.path.isfile(filename), 'File not found.'
     version = phc.hdf5._check_version(filename)
-    if version == u'0.2':
+    if version == '0.2':
         return loader_legacy.hdf5(filename)
 
     h5file = tables.open_file(filename)
     try:
         # make sure the file is valid
-        if validate and version.startswith(u'0.4'):
+        if validate and version.startswith('0.4'):
             phc.v04.hdf5.assert_valid_photon_hdf5(h5file,
                                                   require_setup=require_setup,
                                                   strict_description=False)
@@ -364,16 +365,16 @@ def photon_hdf5(filename, ondisk=False, require_setup=True, validate=False, fix_
         # Create the data container
         h5data = h5file.root
         d = Data(fname=filename, data_file=h5data._v_file)
-    
+
         for grp_name in ['setup', 'sample', 'provenance', 'identity']:
             if grp_name in h5data:
                 d.add(**{grp_name:
                          phc.hdf5.dict_from_group(h5data._f_get_child(grp_name))})
-    
+
         for field_name in ['description', 'acquisition_duration']:
             if field_name in h5data:
                 d.add(**{field_name: h5data._f_get_child(field_name).read()})
-    
+
         if _is_multich(h5data):
             _photon_hdf5_multich(h5data, d, ondisk=ondisk)
         else:
@@ -669,7 +670,7 @@ def _nsalex_apply_period_1ch(d, i, delete_ph_t=True):
     _append_data_ch(d, 'A_em', a_em)
     _append_data_ch(d, 'D_ex', d_ex)
     _append_data_ch(d, 'A_ex', a_ex)
-    
+
     if d.polarization:
         # We also have polarization data
         p_polariz_ch, s_polariz_ch = d._det_p_s_pol_multich[ich]

@@ -10,9 +10,10 @@ This model provides a class for fitting multi-channel data
 models used to fit E or S histograms.
 """
 
+import lmfit
 import numpy as np
 import pandas as pd
-import lmfit
+
 try:
     import matplotlib.pyplot as plt
     from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -366,7 +367,7 @@ class MultiFitter:
         self.skip_ch = []
         if skip_ch is not None:
             self.skip_ch = skip_ch
-    
+
     def _set_hist_data(self, hist_counts, bins):
         self.hist_bins = bins
         self.hist_binwidth = (bins[1] - bins[0])
@@ -385,15 +386,15 @@ class MultiFitter:
         except TypeError:
             # values is not iterable
             self._weights = [values]*self.ndata
-            
+
     @property
     def hist_counts_tot(self):
         return self.hist_counts.sum(axis=0)
-    
+
     @property
     def hist_pdf(self):
         return self.hist_counts.astype(float) / self.hist_counts.sum(axis=1)[:, np.newaxis] / self.hist_binwidth
-    
+
     @property
     def hist_pdf_tot(self):
         return self.hist_counts_tot / self.hist_counts_tot.sum() / self.hist_binwidth
@@ -493,7 +494,7 @@ class MultiFitter:
         fit_res = [val.values for val in self.fit_res]
         self.params = pd.DataFrame(fit_res)
         self.params = self.params[sorted(self.params.columns.tolist())]
-        
+
 
     def calc_kde(self, bandwidth=0.03, calc_tot=True):
         """Compute the list of kde functions and save it in `.kde`.
@@ -513,10 +514,10 @@ class MultiFitter:
                                         weights=weights_i)
             self.kde.append(kde)
         if calc_tot:
-            data = np.concatenate([data for i, data in enumerate(self.data_list) 
+            data = np.concatenate([data for i, data in enumerate(self.data_list)
                                    if i not in self.skip_ch])
             if np.any([w is not None for w in self.weights]):
-                weights = np.concatenate([w for i, w in enumerate(self.weights) 
+                weights = np.concatenate([w for i, w in enumerate(self.weights)
                                           if i not in self.skip_ch])
             else:
                 weights = [None]
@@ -537,7 +538,7 @@ class MultiFitter:
                 self.kde_max_pos[ich] = find_max(x_kde, kde(x_kde),
                                                  xmin=xmin, xmax=xmax)
         if calc_tot:
-            self.kde_max_pos_tot = find_max(x_kde, self.kde_tot(x_kde), 
+            self.kde_max_pos_tot = find_max(x_kde, self.kde_tot(x_kde),
                                             xmin=xmin, xmax=xmax)
 
 

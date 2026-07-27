@@ -82,12 +82,12 @@ class Ph_sel(namedtuple('Ph_sel', ['Dex', 'Aex'])):
             raise ValueError("You need to specify at least one argument "
                              "(Dex, Aex or 'all').")
         if Dex == 'all':
-            return super(Ph_sel, cls).__new__(cls, 'DAem', 'DAem')
+            return super().__new__(cls, 'DAem', 'DAem')
         if Dex not in cls.valid_values or Aex not in cls.valid_values:
             raise ValueError("Invalid value %s. Valid values are "
                              "'DAem', 'Dem' or 'Aem' (or None)." %
                              str((Dex, Aex)))
-        return super(Ph_sel, cls).__new__(cls, Dex, Aex)
+        return super().__new__(cls, Dex, Aex)
 
     @classmethod
     def _get_str_mapping(cls, invert=False):

@@ -2,13 +2,11 @@
 Unittest for exp_fitting.py
 """
 
-import pytest
-
 import numpy as np
+import pytest
 import scipy.stats as SS
 
 from fretbursts.fit.exp_fitting import expon_fit, expon_fit_cdf, expon_fit_hist
-
 
 sample_size = 5000
 sample_tau = 3.

@@ -18,7 +18,6 @@ is sufficient to exercise them without any network access.
 import numpy as np
 import phconvert as phc
 
-
 CLK_P = 12.5e-9          # timestamp unit (s) -- matches real usALEX data
 ALEX_PERIOD = 4000       # alternation period in timestamp units
 

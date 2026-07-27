@@ -19,7 +19,8 @@ Poisson distribution parameter: n = lam*T
 """
 
 import numpy as np
-from scipy.stats import poisson, chi2, erlang
+from scipy.stats import chi2, erlang, poisson
+
 
 def find_optimal_T_bga(bg_array, m, P):
     """Return T so that m-ph delay from pure BG will be < T with prob. < P.

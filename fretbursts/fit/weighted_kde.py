@@ -12,10 +12,18 @@ http://mail.scipy.org/pipermail/scipy-user/2013-May/034580.html
 
 # Scipy imports.
 #from scipy import linalg, special
-from numpy import (atleast_2d, reshape, zeros, newaxis, dot, exp, pi, sqrt,)
-                   #ravel, power, atleast_1d, squeeze, sum, transpose)
+#ravel, power, atleast_1d, squeeze, sum, transpose)
 import numpy as np
-
+from numpy import (
+    atleast_2d,
+    dot,
+    exp,
+    newaxis,
+    pi,
+    reshape,
+    sqrt,
+    zeros,
+)
 
 
 class gaussian_kde_w:

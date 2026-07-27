@@ -12,8 +12,8 @@ This module provides a standard interface for different fitting algorithms.
 """
 
 import numpy as np
+from scipy.optimize import leastsq, minimize_scalar
 from scipy.stats import binom, expon
-from scipy.optimize import minimize_scalar, leastsq
 
 from .fit import gaussian_fitting as gf
 

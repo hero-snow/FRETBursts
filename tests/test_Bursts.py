@@ -9,8 +9,6 @@ Unit tests for Burst, Bursts, BurstGap, BurstsGap.
 Running the tests requires `py.test`.
 """
 
-from __future__ import division
-from builtins import range, zip
 
 import numpy as np
 import pytest

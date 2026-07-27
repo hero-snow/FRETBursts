@@ -18,10 +18,11 @@ See also :func:`exp_hist_fit` for background estimation using an histogram fit.
 
 import numpy as np
 from scipy.integrate import trapezoid
-from .ph_sel import Ph_sel
-from .utils.misc import pprint
+
 from .fit import exp_fitting
 from .fit.gaussian_fitting import gaussian_fit_hist
+from .ph_sel import Ph_sel
+from .utils.misc import pprint
 
 
 def raw_fit(ph, clk_p=12.5e-9, residuals=False, tail_min_us=None):

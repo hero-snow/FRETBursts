@@ -9,7 +9,6 @@ A global plot style for matplotlib.
 
 from matplotlib.pyplot import rcParams
 
-
 # This will fail on ReadTheDocs so I use a try-except
 try:
     fontsize = fs = 12

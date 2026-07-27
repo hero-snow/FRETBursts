@@ -10,9 +10,9 @@ Running the tests requires `py.test`.
 """
 
 from collections import namedtuple
-import pytest
-from itertools import product
+
 import numpy as np
+import pytest
 from scipy.stats import norm
 
 try:
@@ -33,18 +33,16 @@ else:
 
 import fretbursts.background as bg
 import fretbursts.burstlib as bl
-import fretbursts.burstlib_ext as bext
-from fretbursts.burstlib import Data
-from fretbursts import loader
-from fretbursts import select_bursts
+from fretbursts import loader, select_bursts
 from fretbursts.ph_sel import Ph_sel
 from fretbursts.phtools import phrates
+
 if has_matplotlib:
     import fretbursts.burst_plot as bplt
 
 
 # data subdir in the notebook folder
-DATASETS_DIR = u'../notebooks/data/'
+DATASETS_DIR = '../notebooks/data/'
 
 
 def _alex_process(d):
@@ -801,12 +799,12 @@ if has_numba:
             ratesl, nph = phrates.nb.kde_laplace_nph(ph, tau)
             assert (rates == ratesl).all()
             assert (nph == nrect).all()
-    
+
             # Test consistency of kde_laplace and _kde_laplace_self_numba
             ratesl2, nph2 = phrates.nb.kde_laplace_self_numba(ph, tau)
             assert (nph2 == nrect).all()
             assert (ratesl2 == rates).all()
-    
+
             # Smoke test laplace, gaussian, rect with time_axis
             ratesl = phrates.kde_laplace(ph, tau, time_axis=ph+1)
             assert ((ratesl >= 0) * (ratesl < 5e6)).all()

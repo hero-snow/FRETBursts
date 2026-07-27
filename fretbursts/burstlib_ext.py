@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # FRETBursts - A single-molecule FRET burst analysis toolkit.
 #
@@ -49,24 +48,20 @@ Finally a few functions deal with burst timestamps:
 """
 
 from itertools import chain, islice
+
 import numpy as np
-from scipy.stats import erlang
-from scipy.optimize import leastsq
 import pandas as pd
-from pandas.api.types import CategoricalDtype
 import tables
+from pandas.api.types import CategoricalDtype
+from scipy.optimize import leastsq
+from scipy.stats import erlang
 
-from .ph_sel import Ph_sel
 from . import background as bg
-from .utils.misc import pprint, HistData, _is_list_of_arrays, dict_equal
-
-from . import burstlib
-from . import select_bursts
-from . import fret_fit
-from . import mfit
-
-from .burstlib import isarray, Data
+from . import burstlib, fret_fit, mfit, select_bursts
+from .burstlib import Data, isarray
+from .ph_sel import Ph_sel
 from .phtools.burstsearch import Bursts
+from .utils.misc import HistData, _is_list_of_arrays, dict_equal, pprint
 
 
 def moving_window_startstop(start, stop, step, window=None):
@@ -698,7 +693,7 @@ def calc_mdelays_hist(d, ich=0, m=10, period=(0, -1), bins_s=(0, 10, 0.02),
         # Fitting the BG portion of the PDF to an Erlang
         _x = bin_x[bin_x > bg_mean*bg_F]
         _y = mdelays_hist_y[bin_x > bg_mean*bg_F]
-        
+
         def fit_func(x, a, rate_kcps):
             return a * erlang.pdf(x, a=m, scale=1./rate_kcps)
 
@@ -804,7 +799,7 @@ def join_data(d_list, gap=0):
             concatenate = Bursts.merge if name == 'mburst' else np.concatenate
 
             for ich in range(nch):
-                new_size = sum((d.mburst[ich].num_bursts for d in d_list))
+                new_size = sum(d.mburst[ich].num_bursts for d in d_list)
                 if new_size == 0:
                     continue  # -> No bursts in this ch
 
@@ -928,7 +923,7 @@ def group_data(d_list):
                 meta_data[field] = field_dict
             elif np.any([d[field] != d_list[0][field] for d in d_list[1:]]):
                 raise RuntimeError(f"Inconsistent analysis for {field}")
-    new_d.add(**meta_data)                
+    new_d.add(**meta_data)
     setup = dict()
     i = 0
     for d in d_list:

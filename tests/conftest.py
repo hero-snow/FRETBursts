@@ -14,14 +14,12 @@ network dependencies. To run against real data instead, set the environment
 variable ``FRETBURSTS_TEST_DATA`` to a directory containing the real files.
 """
 
+import importlib
 import os
 import sys
-import importlib
 
 import pytest
-
 import synthdata
-
 
 # filename -> generator producing that file. Distinct seeds keep the four
 # ns-ALEX files (used as a "grouped" multi-file dataset) independent.

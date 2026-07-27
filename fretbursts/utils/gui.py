@@ -10,10 +10,10 @@
 GUI related helper functions.
 """
 
-from sys import executable
-from subprocess import check_output
 import contextlib
 import os
+from subprocess import check_output
+from sys import executable
 
 
 @contextlib.contextmanager

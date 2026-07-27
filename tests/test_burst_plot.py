@@ -7,36 +7,25 @@ Tests of plotting functions
 These are mostly smoke tests
 """
 
-from collections import namedtuple
-from itertools import product
-import pytest
-import numpy as np
-
-
 import matplotlib
+import pytest
+
 matplotlib.use('Agg')  # but if matplotlib is installed, use Agg
 import matplotlib.pyplot as plt
+
 # try:
 #     import numba
 # except ImportError:
 #     has_numba = False
 # else:
 #     has_numba = True
-
-
 import fretbursts.background as bg
-import fretbursts.burstlib as bl
-import fretbursts.burstlib_ext as bext
-from fretbursts.burstlib import Data
-from fretbursts import loader
-from fretbursts import select_bursts
-from fretbursts.ph_sel import Ph_sel
-from fretbursts.phtools import phrates
 import fretbursts.burst_plot as bplt
-
+from fretbursts import loader
+from fretbursts.ph_sel import Ph_sel
 
 # data subdir in the notebook folder
-DATASETS_DIR = u'../notebooks/data/'
+DATASETS_DIR = '../notebooks/data/'
 
 
 def _alex_process(d):
@@ -78,7 +67,7 @@ def load_fake_pax():
     d.burst_search(L=10, m=10, F=6, pax=True)
     return d
 
-    
+
 def load_dataset_grouped(process=True):
     fn = ['HP3_TE150_SPC630.hdf5', 'HP3_TE200_SPC630.hdf5', 'HP3_TE250_SPC630.hdf5', 'HP3_TE300_SPC630.hdf5']
     fn = [DATASETS_DIR + f for f in fn]
@@ -174,7 +163,7 @@ def test_trace_single(data, ratetraces):
             bplt.dplot(d, ratetraces, i=i, ph_sel=ph_sel)
     plt.close()
 
-@pytest.fixture(scope='module', params = (bplt.timetrace, bplt.ratetrace, 
+@pytest.fixture(scope='module', params = (bplt.timetrace, bplt.ratetrace,
                                           bplt.timetrace_bg, bplt.timetrace_fret,
                                           bplt.timetrace_fret_scatter, bplt.time_ph))
 def timetraces(request):
@@ -192,7 +181,7 @@ def test_trace(data, timetraces):
                                           bplt.hist_brightness, bplt.hist_size_all,
                                           bplt.hist_fret, bplt.hist_interphoton,
                                           bplt.hist_ph_delays, bplt.hist_mdelays,
-                                          bplt.hist_mrates, bplt.hist_sbr, 
+                                          bplt.hist_mrates, bplt.hist_sbr,
                                           bplt.hist_burst_phrate, bplt.hist_burst_delays,
                                           bplt.hist_asymmetry))
 def hists(request):

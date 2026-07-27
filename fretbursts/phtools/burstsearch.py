@@ -54,6 +54,7 @@ photons falling inside gaps (gaps are open intervals, do not include edges).
 """
 
 from collections import namedtuple
+
 import numpy as np
 import pandas as pd
 
@@ -552,7 +553,7 @@ class Bursts:
         # Go through the timestamps searching for start
         # and stop of each burst in order
         sz = times_reduced.size
-        final_time = times_reduced[sz-1] 
+        final_time = times_reduced[sz-1]
         it = 0
         warn = False
         for ib, burst in enumerate(self):
@@ -651,7 +652,7 @@ class BurstsGap(Bursts):
                              dtype=np.int64)
             datag[:, :Bursts._ncols] = burstarray
             burstarray = datag
-        super(BurstsGap, self).__init__(burstarray)
+        super().__init__(burstarray)
 
     @classmethod
     def from_list(cls, bursts_list):

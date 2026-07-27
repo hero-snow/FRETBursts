@@ -23,9 +23,8 @@ specified selection criterium (`E` between 0.2 and 0.6 in this case).
 import numpy as np
 from scipy import stats
 
-from .utils.misc import clk_to_s as _clk_to_s
 from .ph_sel import Ph_sel
-
+from .utils.misc import clk_to_s as _clk_to_s
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  BURSTS SELECTION FUNCTIONS

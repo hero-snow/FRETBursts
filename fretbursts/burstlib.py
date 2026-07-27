@@ -16,41 +16,34 @@ Furthermore it loads all the remaining **FRETBursts** modules (except for
 For usage example see the IPython Notebooks in sub-folder "notebooks".
 """
 
-import os
+import copy
 import hashlib
 import numbers
+import os
+
 import numpy as np
-import copy
-from numpy import zeros, size, r_
+from numpy import r_, size, zeros
 from scipy.stats import norm
 
-from .utils.misc import pprint, clk_to_s, deprecate
-from .poisson_threshold import find_optimal_T_bga
-from . import fret_fit
-from . import bg_cache
+from . import background as bg
+from . import bg_cache, fret_fit, select_bursts
+from .fit.gaussian_fitting import (
+    two_gauss_mix_ab,
+    two_gauss_mix_pdf,
+    two_gaussian_fit_EM,
+    two_gaussian_fit_hist,
+)
 from .ph_sel import Ph_sel
-from .fretmath import gamma_correct_E, gamma_uncorrect_E
-
 from .phtools import burstsearch as bslib
+from .phtools import phrates
 from .phtools.burstsearch import (
     # Burst search function
     bsearch,
     # Photon counting function,
-    mch_count_ph_in_bursts
+    mch_count_ph_in_bursts,
 )
-from .phtools import phrates
-from . import background as bg
-from . import select_bursts
-from . import fit
-from .fit.gaussian_fitting import (gaussian_fit_hist,
-                                   gaussian_fit_cdf,
-                                   two_gaussian_fit_hist,
-                                   two_gaussian_fit_hist_min,
-                                   two_gaussian_fit_hist_min_ab,
-                                   two_gaussian_fit_EM,
-                                   two_gauss_mix_pdf,
-                                   two_gauss_mix_ab,)
-
+from .poisson_threshold import find_optimal_T_bga
+from .utils.misc import clk_to_s, deprecate, pprint
 
 # Redefine some old functions that have been renamed so old scripts will not
 # break but will print a warning
@@ -1569,7 +1562,7 @@ class Data(DataContainer):
             bg_field = 'bg_mean'
         try:
             value = getattr(self, bg_field)[ph_sel]
-        except AttributeError as e:
+        except AttributeError:
             # This only happens when trying to access 'bg' because
             # 'bg_mean' raises RuntimeError when missing.
             msg = 'No attribute `%s` found. Please compute background first.'

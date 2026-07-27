@@ -17,6 +17,7 @@ memory use the slicing notation (like pytable_array[:]).
 """
 
 import os
+
 import tables
 
 _default_compression = dict(complevel=6, complib='blosc')
@@ -38,7 +39,7 @@ class PyTablesList(list):
         `group_descr`, `prefix`, `compression` are only used if a new group is
         created (for example for a new file).
         """
-        super(PyTablesList, self).__init__()
+        super().__init__()
         self.parent_node = parent_node
         self.group_name = group_name
         self.load_array = load_array
@@ -71,7 +72,7 @@ class PyTablesList(list):
                 array_ = self.group._f_get_child(self.get_name(i))
                 if self.load_array:
                     array_ = array_[:]
-                super(PyTablesList, self).append(array_)
+                super().append(array_)
         else:
             # If a new group save some metadata
             self.group._v_attrs.size = self.size
@@ -89,7 +90,7 @@ class PyTablesList(list):
         tarray = self.data_file.create_carray(self.group, name, obj=ndarray,
                                              filters=comp_filter)
         self.data_file.flush()
-        super(PyTablesList, self).append(tarray)
+        super().append(tarray)
         #print(self.prefix+str(self.size), ndarray)
         self.size += 1
         self.group._v_attrs.size = self.size

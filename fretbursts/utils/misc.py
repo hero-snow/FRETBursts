@@ -9,6 +9,7 @@ Misc utility functions
 
 import os
 import sys
+
 import numpy as np
 
 
@@ -41,7 +42,7 @@ def _is_list_of_arrays(obj):
     return isinstance(obj, list) and np.all([isinstance(v, np.ndarray)
                                              for v in obj])
 
-class HistData(object):
+class HistData:
     """Stores histogram counts and bins and provides derived fields.
 
     Attributes:
@@ -129,8 +130,8 @@ def download_file(url, save_dir='./'):
         print('File already on disk: %s \nDelete it to re-download.' % path)
         return
 
-    from urllib.request import urlopen, urlretrieve
     from urllib.error import HTTPError, URLError
+    from urllib.request import urlopen, urlretrieve
 
     # Check if the URL is valid
     try:
@@ -145,7 +146,7 @@ def download_file(url, save_dir='./'):
     def _report(blocknr, blocksize, size):
         current = blocknr*blocksize/2**20
         sys.stdout.write(
-            "\rDownloaded {0:4.1f} / {1:4.1f} MB".format(current, size/2**20))
+            f"\rDownloaded {current:4.1f} / {size/2**20:4.1f} MB")
     mkdir_p(save_dir)
     urlretrieve(url, path, _report)
 
@@ -174,7 +175,7 @@ def dict_equal(*dicts):
             for dct in dicts[1:]:
                 if not _large_equal(val0, dct[key]):
                     comp = False
-                    break 
+                    break
             if not comp:
                 break
     return comp
