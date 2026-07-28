@@ -58,4 +58,4 @@ def test_expon_fit_histw(sample):
     assert relative_error < max_relative_error
 
 if __name__ == '__main__':
-    pytest.main("-x -v -s fretbursts/fit/test_exp_fitting.py")
+    pytest.main([__file__, "-x", "-v", "-s"])

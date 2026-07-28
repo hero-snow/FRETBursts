@@ -1765,7 +1765,7 @@ def hist_ph_delays(
             time_max_sg = (time_max_s for _ in range(d.nch))
             print("next")
         ph = np.concatenate([p[(p < tmax/d.clk_p)*(p > tmin/d.clk_p)]
-                             for p, tmax, tmin in zip(ph, time_max_sg, time_min_sg)])
+                             for p, tmax, tmin in zip(ph, time_max_sg, time_min_sg, strict=True)])
     else:
         ph = d.ph_times_m[i].copy()
         if mask is not None:
@@ -1774,7 +1774,8 @@ def hist_ph_delays(
     dph = np.diff(ph)*d.clk_p
     H = ax.hist(dph*1e6, bins=r_[0:1200:bin_width_us], histtype='step', **kwargs)
     ax.set_yscale('log')
-    ax.set_xlabel('Ph delay time (μs)'); ax.set_ylabel("# Ph")
+    ax.set_xlabel('Ph delay time (μs)')
+    ax.set_ylabel("# Ph")
     F = 1 if 'normed' in kwargs else H[0].sum()*(bin_width_us)
 
     efun = lambda t, r: np.exp(-r*t)*r

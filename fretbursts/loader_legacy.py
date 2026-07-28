@@ -170,12 +170,12 @@ class H5Loader:
                   allow_missing=False, ondisk=False):
         try:
             node = self.h5file.get_node(where, name)
-        except tables.NoSuchNodeError:
+        except tables.NoSuchNodeError as err:
             if allow_missing:
                 node_value = np.array([])
             else:
                 self.h5file.close()
-                raise OSError("Invalid file format: '%s' is missing." % name)
+                raise OSError("Invalid file format: '%s' is missing." % name) from err
         else:
             node_value = node if ondisk else node.read()
 
@@ -259,10 +259,10 @@ def hdf5(fname, ondisk=False):
         try:
             assert 'nanotimes' in ph_group
             assert 'nanotimes_specs' in ph_group
-        except AssertionError:
+        except AssertionError as err:
             data_file.close()
             raise OSError('The lifetime flag is True but the TCSPC '
-                           'data is missing.')
+                           'data is missing.') from err
 
     if d.nch == 1:
         # load single-spot data from "basic layout"

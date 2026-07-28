@@ -45,6 +45,12 @@ def _datasets(tmp_path_factory):
     real = os.environ.get('FRETBURSTS_TEST_DATA')
     if real:
         data_dir = real
+        missing = [name for name in _GENERATORS
+                   if not os.path.isfile(os.path.join(data_dir, name))]
+        if missing:
+            raise pytest.UsageError(
+                "FRETBURSTS_TEST_DATA=%r is missing required dataset(s): %s"
+                % (data_dir, ', '.join(missing)))
     else:
         out = tmp_path_factory.mktemp('synthdata')
         for name, generate in _GENERATORS.items():
