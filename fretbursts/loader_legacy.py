@@ -15,21 +15,23 @@ loading and preprocessing can be found in the `dataload` folder.
 
 import os
 import pickle
+
 import numpy as np
 import tables
-
-from .dataload.multi_ch_reader import load_data_ordered16
-from .dataload.manta_reader import (load_manta_timestamps,
-                                    load_xavier_manta_data,
-                                    get_timestamps_detectors,
-                                    # process_timestamps,
-                                    process_store,
-                                    load_manta_timestamps_pytables)
-from .utils.misc import pprint, deprecate
-from .burstlib import Data
-from .hdf5 import hdf5_data_map
-
 from phconvert.hdf5 import dict_from_group
+
+from .burstlib import Data
+from .dataload.manta_reader import (
+    get_timestamps_detectors,
+    load_manta_timestamps,
+    load_manta_timestamps_pytables,
+    load_xavier_manta_data,
+    # process_timestamps,
+    process_store,
+)
+from .dataload.multi_ch_reader import load_data_ordered16
+from .hdf5 import hdf5_data_map
+from .utils.misc import deprecate, pprint
 
 
 def multispot8(fname, bytes_to_read=-1, swap_D_A=True, leakage=0, gamma=1.):
@@ -42,7 +44,7 @@ def multispot8(fname, bytes_to_read=-1, swap_D_A=True, leakage=0, gamma=1.):
                   gamma=gamma)
         dx.add(ph_times_m=var['ph_times_m'], A_em=var['A_em'], ALEX=False)
         pprint(" - File loaded from cache: %s\n" % fname)
-    except IOError:
+    except OSError:
         dx = multispot8_core(fname, bytes_to_read=bytes_to_read,
                              swap_D_A=swap_D_A, leakage=leakage, gamma=gamma)
         D = {'ph_times_m': dx.ph_times_m, 'A_em': dx.A_em}
@@ -108,7 +110,7 @@ def multispot48(fname, leakage=0, gamma=1., reprocess=False,
         return ph_times_m, big_fifo, ch_fifo
 
     if not (os.path.isfile(fname_dat) or os.path.isfile(fname_h5)):
-        raise IOError('Data file "%s" not found' % basename)
+        raise OSError('Data file "%s" not found' % basename)
 
     if os.path.exists(fname_h5) and not reprocess:
         # There is a HDF5 file
@@ -152,14 +154,14 @@ def assert_valid_photon_hdf5(h5file):
     if msg != '':
         h5file.close()
         msg = 'Not a valid Photon-HDF5 file. \n' + msg
-        raise IOError(msg)
+        raise OSError(msg)
 
 
 def _is_basic_layout(h5file):
     return 'photon_data' in h5file.root
 
 
-class H5Loader():
+class H5Loader:
     def __init__(self, h5file, data):
         self.h5file = h5file
         self.data = data
@@ -168,12 +170,12 @@ class H5Loader():
                   allow_missing=False, ondisk=False):
         try:
             node = self.h5file.get_node(where, name)
-        except tables.NoSuchNodeError:
+        except tables.NoSuchNodeError as err:
             if allow_missing:
                 node_value = np.array([])
             else:
                 self.h5file.close()
-                raise IOError("Invalid file format: '%s' is missing." % name)
+                raise OSError("Invalid file format: '%s' is missing." % name) from err
         else:
             node_value = node if ondisk else node.read()
 
@@ -215,7 +217,7 @@ def hdf5(fname, ondisk=False):
                              'alex', 'lifetime']
 
     if not os.path.isfile(fname):
-        raise IOError('File not found.')
+        raise OSError('File not found.')
     data_file = tables.open_file(fname, mode="r")
     assert_valid_photon_hdf5(data_file)
 
@@ -257,10 +259,10 @@ def hdf5(fname, ondisk=False):
         try:
             assert 'nanotimes' in ph_group
             assert 'nanotimes_specs' in ph_group
-        except AssertionError:
+        except AssertionError as err:
             data_file.close()
-            raise IOError(('The lifetime flag is True but the TCSPC '
-                           'data is missing.'))
+            raise OSError('The lifetime flag is True but the TCSPC '
+                           'data is missing.') from err
 
     if d.nch == 1:
         # load single-spot data from "basic layout"
@@ -324,7 +326,7 @@ def hdf5(fname, ondisk=False):
                 det_specs = ph_group.detectors_specs
                 donor = det_specs.donor.read()
                 accept = det_specs.acceptor.read()
-                if ph_group.detectors.dtype == np.bool:
+                if ph_group.detectors.dtype == np.bool_:
                     a_em = ph_group.detectors.read()
                     if not accept:
                         np.logical_not(a_em, out=a_em)

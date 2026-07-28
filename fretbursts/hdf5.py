@@ -14,7 +14,6 @@ also provided.
 
 import phconvert as phc
 
-
 hdf5_data_map = dict(
     filename='fname',
     timestamps_unit='clk_p',

@@ -2,9 +2,10 @@
 Numba-optimized version of functions to compute KDE-based photon rates.
 """
 
-import numpy as np
-import numba
 from math import exp, fabs
+
+import numba
+import numpy as np
 
 
 @numba.jit

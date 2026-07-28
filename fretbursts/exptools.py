@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # FRETBursts - A single-molecule FRET burst analysis toolkit.
 #
@@ -29,8 +28,9 @@ References:
 
 """
 
-import numpy as np
 import math
+
+import numpy as np
 
 # Critical points for different statistics
 critical_points = dict(

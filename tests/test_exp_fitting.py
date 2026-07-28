@@ -2,13 +2,11 @@
 Unittest for exp_fitting.py
 """
 
-import pytest
-
 import numpy as np
+import pytest
 import scipy.stats as SS
 
 from fretbursts.fit.exp_fitting import expon_fit, expon_fit_cdf, expon_fit_hist
-
 
 sample_size = 5000
 sample_tau = 3.
@@ -60,4 +58,4 @@ def test_expon_fit_histw(sample):
     assert relative_error < max_relative_error
 
 if __name__ == '__main__':
-    pytest.main("-x -v -s fretbursts/fit/test_exp_fitting.py")
+    pytest.main([__file__, "-x", "-v", "-s"])

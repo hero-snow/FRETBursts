@@ -37,11 +37,11 @@ The reference documentation for **all** the functions follows.
 
 import numpy as np
 import numpy.random as R
+import scipy.ndimage as ndi
 import scipy.optimize as O
 import scipy.stats as S
-from scipy.special import erf
 from scipy.optimize import leastsq, minimize
-import scipy.ndimage as ndi
+from scipy.special import erf
 
 #from scipy.stats import gaussian_kde
 from .weighted_kde import gaussian_kde_w  # this version supports weights

@@ -9,10 +9,11 @@ Module containing automated unit tests for FRETBursts.
 Running the tests requires `py.test`.
 """
 
-from __future__ import division
 
 from itertools import product
+
 import pytest
+
 from fretbursts.ph_sel import Ph_sel
 
 

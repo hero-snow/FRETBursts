@@ -1,4 +1,3 @@
-# encoding: utf-8
 #
 # FRETBursts - A single-molecule FRET burst analysis toolkit.
 #
@@ -32,37 +31,38 @@ For more examples refer to
 """
 
 import warnings
-from itertools import cycle
 from collections.abc import Iterable
 from functools import wraps
-
-# Numeric imports
-import numpy as np
-from numpy import arange, r_
-from scipy.stats import norm as norm
-from scipy.stats import erlang, gaussian_kde
-from scipy.interpolate import UnivariateSpline
+from itertools import cycle
 
 # Graphics imports
 import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle, Ellipse
-from matplotlib.collections import PatchCollection, PolyCollection
-from matplotlib.offsetbox import AnchoredText
-from matplotlib.gridspec import GridSpec
-from matplotlib.cm import ScalarMappable
-from matplotlib.colors import Normalize
+
+# Numeric imports
+import numpy as np
 import seaborn as sns
+from matplotlib.cm import ScalarMappable
+from matplotlib.collections import PatchCollection
+from matplotlib.colors import Normalize
+from matplotlib.gridspec import GridSpec
+from matplotlib.offsetbox import AnchoredText
+from matplotlib.patches import Ellipse, Rectangle
+from numpy import arange, r_
+from scipy.integrate import trapezoid
+from scipy.interpolate import UnivariateSpline
+from scipy.stats import erlang, gaussian_kde
+from scipy.stats import norm as norm
+
+from . import background as bg
+from . import burstlib as bl
+from . import burstlib_ext as bext
+from . import gui_selection as gs
 
 # Local imports
 from .ph_sel import Ph_sel
-from . import burstlib as bl
 from .phtools import phrates
-from . import burstlib_ext as bext
-from . import background as bg
-from .utils.misc import HistData, _is_list_of_arrays, selection_mask
 from .scroll_gui import ScrollingToolQT
-from . import gui_selection as gs
-
+from .utils.misc import HistData, _is_list_of_arrays, selection_mask
 
 ##
 # Globals
@@ -548,7 +548,7 @@ def timetrace(d, i=0, binwidth=1e-3, bins=None, tmin=0, tmax=200,
                 tmax=tmax, ph_sel=ph_sel, invert=invert, bursts=False,
                 burst_picker=burst_picker_list[ix],
                 scroll=scroll_list[ix], cache_bins=True,
-                show_rate_th=show_rate_th, F=F, ax=ax, 
+                show_rate_th=show_rate_th, F=F, ax=ax,
                 rate_th_style=rate_th_style, set_ax_limits=set_ax_limits,
                 plot_style=plot_style)
     if legend:
@@ -956,7 +956,7 @@ def _get_sizes_and_formula(d, ich, gamma, beta, donor_ref, add_naa,
         label = '$ %s $' % d._burst_sizes_pax_formula(**dict(kws, **kws_pax))
     else:
         if ich is None:
-            sizes = np.concatenate([d.burst_sizes_ich(ich=i, add_naa=add_naa, **kws) 
+            sizes = np.concatenate([d.burst_sizes_ich(ich=i, add_naa=add_naa, **kws)
                                     for i in range(d.nch)])
         else:
             sizes = d.burst_sizes_ich(ich=ich, add_naa=add_naa, **kws)
@@ -1098,7 +1098,7 @@ def _fitted_E_plot(d, i=0, F=1, no_E=False, ax=None, show_model=True,
             ax2.fill_between(x, scale*y, lw=lw, alpha=alpha, edgecolor=color,
                              facecolor=fillcolor, zorder=10)
         if verbose:
-            print('Fit Integral:', np.trapz(scale*y, x))
+            print('Fit Integral:', trapezoid(scale*y, x))
 
     ax2.axvline(d.E_fit[i], lw=3, color=red, ls='--', alpha=0.6)
     xtext = 0.6 if d.E_fit[i] < 0.6 else 0.2
@@ -1764,17 +1764,18 @@ def hist_ph_delays(
         if not isinstance(time_max_s, Iterable):
             time_max_sg = (time_max_s for _ in range(d.nch))
             print("next")
-        ph = np.concatenate([p[(p < tmax/d.clk_p)*(p > tmin/d.clk_p)] 
-                             for p, tmax, tmin in zip(ph, time_max_sg, time_min_sg)])
+        ph = np.concatenate([p[(p < tmax/d.clk_p)*(p > tmin/d.clk_p)]
+                             for p, tmax, tmin in zip(ph, time_max_sg, time_min_sg, strict=True)])
     else:
         ph = d.ph_times_m[i].copy()
-        if mask is not None: 
+        if mask is not None:
             ph = ph[mask[i]]
         ph = ph[(ph < time_max_s/d.clk_p)*(ph > time_min_s/d.clk_p)]
     dph = np.diff(ph)*d.clk_p
     H = ax.hist(dph*1e6, bins=r_[0:1200:bin_width_us], histtype='step', **kwargs)
     ax.set_yscale('log')
-    ax.set_xlabel(u'Ph delay time (μs)'); ax.set_ylabel("# Ph")
+    ax.set_xlabel('Ph delay time (μs)')
+    ax.set_ylabel("# Ph")
     F = 1 if 'normed' in kwargs else H[0].sum()*(bin_width_us)
 
     efun = lambda t, r: np.exp(-r*t)*r
@@ -1794,7 +1795,7 @@ def hist_ph_delays(
     except:
         rc_do = False
     t = r_[0:1200]*1e-6
-    
+
     if rc_do:
         ax.plot(t*1e6, 0.65*F*efun(t, rc)*1e-6, lw=3, alpha=0.5, color=purple,
              label="%d cps - Exp CDF (tail_min_p=%.2f)" % (rc, efit_tail_min_us))
@@ -1803,7 +1804,7 @@ def hist_ph_delays(
                 label="%d cps - Exp ML (tail_min_p=%.2f)" % (re, efit_tail_min_us))
     if re_do and rg_do:
         ax.plot(t*1e6, 0.68*F*efun(t, rg)*1e-6, lw=3, alpha=0.5, color=green,
-                label=u"%d cps - Hist (bin_ms=%d) [Δ=%d%%]" % (hfit_bin_ms, rg,
+                label="%d cps - Hist (bin_ms=%d) [Δ=%d%%]" % (hfit_bin_ms, rg,
                                                             100*(rg-re)/re))
     ax.legend(loc='best', fancybox=True)
 
@@ -1851,8 +1852,8 @@ def hist_mdelays(d, i=0, m=10, bins_s=(0, 10, 0.02), period=0,
     max_delay_th_F = m/rate_ch_kcps/d.F
 
     burst_domain = bin_x < max_delay_th_F
-    burst_integral = np.trapz(x=bin_x[burst_domain],
-                              y=mdelays_hist_y[burst_domain])
+    burst_integral = trapezoid(x=bin_x[burst_domain],
+                               y=mdelays_hist_y[burst_domain])
 
     ax.set_title("I = %.1f %%" % (burst_integral*100), fontsize='small')
     #text(0.8,0.8,"I = %.1f %%" % (integr*100), transform = gca().transAxes)
@@ -1938,7 +1939,7 @@ def hist_burst_phrate(d, i=0, bins=(0, 1000, 20), pdf=True, weights=None,
         if 'max_rate' not in d:
             d.calc_max_rate(m=10)
         max_rate = np.concatenate(d.max_rate) if i is None else d.max_rate[i]
-    
+
     _hist_burst_taildist(max_rate * 1e-3, bins, pdf, ax, weights=weights,
                          color=color, plot_style=plot_style, vline=vline)
     ax.set_xlabel('Peak rate (kcps)')
@@ -1984,7 +1985,7 @@ def hist_asymmetry(d, i=0, bin_max=2, binwidth=0.1, stat_func=np.median, ax=None
     ax.grid(True)
     ax.set_xlabel('Time (ms)')
     ax.set_ylabel('# Bursts')
-    ax.legend(['{func}$(t_D)$ - {func}$(t_A)$'.format(func=stat_func.__name__),
+    ax.legend([f'{stat_func.__name__}$(t_D)$ - {stat_func.__name__}$(t_A)$',
                 'positive half - negative half'],
                frameon=False, loc='best')
     skew_abs = asym_counts_neg.sum()
@@ -2018,7 +2019,7 @@ def kde_density(x, y, bw_method=None, rescalex=linear_scale, rescaley=linear_sca
 
 
 @_ax_intercept
-def scatter_burst_data(d, xparam, yparam, i=0, ax=None, color_style='flat', 
+def scatter_burst_data(d, xparam, yparam, i=0, ax=None, color_style='flat',
                        color_style_kwargs=None, xscale='linear', yscale='linear',
                        **kwargs):
     x = np.concatenate(getattr(d, xparam)) if i is None else getattr(d, xparam)[i]
@@ -2031,7 +2032,7 @@ def scatter_burst_data(d, xparam, yparam, i=0, ax=None, color_style='flat',
     ax.scatter(x, y, **kwargs)
     pass
 
-    
+
 @_ax_intercept
 def scatter_width_size(d, i=0, ax=None):
     """Scatterplot of burst width versus size."""
@@ -2049,7 +2050,7 @@ def scatter_width_size(d, i=0, ax=None):
         bg_mean = d.bg_mean[Ph_sel('all')][i]*t_ms*1e-3
     ax.plot(b, nt, 'o', mew=0, ms=3, alpha=0.7,
          color='blue')
-    
+
     ax.plot(t_ms, ((d.m)/(T))*t_ms*1e-3, '--', lw=2, color='k',
             label='Slope = m/T = min. rate = %1.0f cps' % (d.m/T))
     ax.plot(t_ms, bg_mean, '--', lw=2, color=red,
@@ -2083,7 +2084,7 @@ def scatter_fret_size(d, i=0, which='all', gamma=1, add_naa=False,
     """
     if which == 'all':
         if i is None:
-            size = np.concatenate([d.burst_sizes_ich(ich=j, gamma=gamma, add_naa=add_naa) 
+            size = np.concatenate([d.burst_sizes_ich(ich=j, gamma=gamma, add_naa=add_naa)
                                    for j in range(d.nch)])
         else:
             size = d.burst_sizes_ich(ich=i, gamma=gamma, add_naa=add_naa)
@@ -2116,7 +2117,7 @@ def scatter_fret_nd_na(d, i=0, gamma=1., ax=None, **kwargs):
 @_ax_intercept
 def scatter_fret_width(d, i=0, ax=None):
     """Scatterplot of FRET versus burst width."""
-    if i is None:        
+    if i is None:
         b = np.concatenate([mburst.width for mburst in d.mburst])*d.clk_p*1e3
         E = np.concatenate(d.E)
     else:
@@ -2333,11 +2334,11 @@ def dplot_8ch(d, func, sharex=True, sharey=True,
         ax = AX.ravel()[i]
         if i == 0 and not nosuptitle:
             fig.suptitle(d.status())
-        s = u'[%d]' % (i+1)
+        s = '[%d]' % (i+1)
         if 'bg_mean' in d:
             s += (' BG=%.1fk' % (d.bg_mean[Ph_sel('all')][i]*1e-3))
         if 'T' in d:
-            s += (u', T=%dμs' % (d.T[i]*1e6))
+            s += (', T=%dμs' % (d.T[i]*1e6))
         if b is not None: s += (', #bu=%d' %  b.num_bursts)
         ax.set_title(s, fontsize=12)
         ax.grid(grid)
@@ -2376,7 +2377,7 @@ def dplot_1ch(d, func, grid=True, ax=None,
     if 'bg_mean' in d:
         s += (' BG=%.1fk' % (d.bg_mean[Ph_sel('all')][0] * 1e-3))
     if 'T' in d:
-        s += (u', T=%dμs' % (d.T[0] * 1e6))
+        s += (', T=%dμs' % (d.T[0] * 1e6))
     if 'mburst' in d:
         s += (', #bu=%d' % d.num_bursts[0])
     if not nosuptitle:
@@ -2434,7 +2435,7 @@ def _alex_plot_style(g, colorbar=True,cmap=None, vmin=1, vmax=1000):
 def _hist_bursts_marg( dx, i, E_name='E', S_name='S', **kwargs):
     """Wrapper to call hist_burst_data() from seaborn plot_marginals().
     """
-    if 'orientation' in kwargs and not('vertical' in kwargs):
+    if 'orientation' in kwargs and 'vertical' not in kwargs:
         if kwargs['orientation'] == 'vertical':
             kwargs.update({'vertical':False})
         elif kwargs['orientation'] == 'horizontal':
@@ -2528,10 +2529,10 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='Spectral_r', kind='hex',
     ax_joint = g.add_subplot(gs[1:4,0:3])
     ax_horiz = g.add_subplot(gs[0,0:3],sharex=ax_joint)
     ax_verti = g.add_subplot(gs[1:4,3],sharey=ax_joint)
-    
+
     E = np.concatenate(d[E_name]) if i is None else d[E_name][i]
     S = np.concatenate(d[S_name]) if i is None else d[S_name][i]
-    
+
     if isinstance(marginal_color, int):
         histcolor = sns.color_palette(cmap, 100)[marginal_color]
     else:
@@ -2603,14 +2604,14 @@ def _register_colormaps():
         cmap = mpl.colors.LinearSegmentedColormap.from_list('alex_lv', c)
         cmap.set_under(alpha=0)
         mpl.colormaps.register(name='alex_lv', cmap=cmap)
-    
+
         c = sns.color_palette('YlGnBu', 64)[16:]
         cmap = mpl.colors.LinearSegmentedColormap.from_list('alex', c)
         cmap.set_under(alpha=0)
         mpl.colormaps.register(name='alex_light', cmap=cmap)
         mpl.colormaps.register(name='YlGnBu_crop', cmap=cmap)
         mpl.colormaps.register(name='alex_dark', cmap=mpl.cm.GnBu_r)
-    
+
         # Temporary hack to workaround issue
         # https://github.com/mwaskom/seaborn/issues/855
         mpl.cm.alex_light = mpl.colormaps.get_cmap('alex_light')
@@ -2620,14 +2621,14 @@ def _register_colormaps():
         cmap = mpl.colors.LinearSegmentedColormap.from_list('alex_lv', c)
         cmap.set_under(alpha=0)
         mpl.cm.register_cmap(name='alex_lv', cmap=cmap)
-    
+
         c = sns.color_palette('YlGnBu', 64)[16:]
         cmap = mpl.colors.LinearSegmentedColormap.from_list('alex', c)
         cmap.set_under(alpha=0)
         mpl.cm.register_cmap(name='alex_light', cmap=cmap)
         mpl.cm.register_cmap(name='YlGnBu_crop', cmap=cmap)
         mpl.cm.register_cmap(name='alex_dark', cmap=mpl.cm.GnBu_r)
-    
+
         # Temporary hack to workaround issue
         # https://github.com/mwaskom/seaborn/issues/855
         mpl.cm.alex_light = mpl.cm.get_cmap('alex_light')

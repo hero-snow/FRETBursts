@@ -116,14 +116,15 @@ Plan:
 
 """
 
-from pathlib import Path
 import json
+from pathlib import Path
+
 import numpy as np
 import tables
 
-from .utils.misc import pprint
-from .ph_sel import Ph_sel
 from .background import exp_fit
+from .ph_sel import Ph_sel
+from .utils.misc import pprint
 
 
 def bs_to_signature(L, m, F, P, min_rate_cps, ph_sel, compact, index_allph, c):

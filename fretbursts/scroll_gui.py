@@ -14,22 +14,23 @@ NOTE: Needs cleanups, comments and optimization (see examples in utils/ folder)
 """
 
 import numpy as np
+
 from .utils.misc import pprint
 
 try:
-    from PyQt5 import QtWidgets, QtCore
+    from PyQt5 import QtCore, QtWidgets
     QtGui = QtWidgets
 except ImportError:
     try:
-        from PyQt4 import QtGui, QtCore
+        from PyQt4 import QtCore, QtGui
     except ImportError:
         try:
-            from PySide import QtGui, QtCore
+            from PySide import QtCore, QtGui
         except ImportError:
             print('WARNING: QT not installed. No GUI scrolling available.')
 
 
-class RangeToolQT(object):
+class RangeToolQT:
     def __init__(self, fig):
         # Setup data range variables for scrolling
         self.fig = fig
@@ -65,7 +66,7 @@ class RangeToolQT(object):
         self.ax.set_ylim(self.ymin_sb.value(), self.ymax_sb.value())
         self.draw()
 
-class mToolQT(object):
+class mToolQT:
     def __init__(self, fig, plot_fun, *args, **kwargs):
         if 'bins' not in kwargs: kwargs.update(bins=np.r_[:10:0.02])
         if 't_max' not in kwargs: kwargs.update(t_max=-1)
@@ -155,7 +156,7 @@ class mToolQT(object):
         self.plot_fun(*self.f_args, **self.f_kwargs)
         self.draw()
 
-class ScrollingToolQT(object):
+class ScrollingToolQT:
     # Scrolling steps in fractions of axis width
     scroll_page = 10
     scroll_single = 0.25

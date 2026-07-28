@@ -15,8 +15,8 @@ they are passed to higher level methods.
 """
 
 import numpy as np
-from scipy.stats import linregress, expon
 from scipy.optimize import leastsq
+from scipy.stats import expon, linregress
 
 
 def get_ecdf(s, offset=0.5):
@@ -140,9 +140,9 @@ def expon_fit_hist(s, bins, s_min=0, weights=None, offset=0.5,
     """
     if s_min > 0: s = s[s >= s_min] - s_min
     assert s.size > 10
-    
+
     counts, bins = np.histogram(s, bins=bins, density=True)
-    
+
     x = bins[:-1] + 0.5*(bins[1] - bins[0])  # bin center position
     y = counts
     x = x[y > 0]
@@ -162,7 +162,10 @@ def expon_fit_hist(s, bins, s_min=0, weights=None, offset=0.5,
     err_fun = lambda rate, x, y, w: (exp_fun(x, rate) - y)*w
 
     res = leastsq(err_fun, x0=1./(s.mean()), args=(x, y, w))
-    Lambda = res[0]
+    # ``leastsq`` returns the solution as an array; x0 is a scalar here, so
+    # extract the single element to return a scalar rate, consistent with
+    # ``expon_fit`` and ``expon_fit_cdf``.
+    Lambda = res[0][0]
 
     x_residuals, residuals = None, None
     if calc_residuals:

@@ -1,0 +1,5 @@
+# Windows batch files must use CRLF: cmd.exe can mis-parse GOTO/CALL label
+# boundaries in a batch file that has LF-only line endings. `eol=crlf` stores
+# the blob normalized (LF) but always checks out CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf

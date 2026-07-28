@@ -12,10 +12,10 @@ This data is produced by the 4 and 8-spot smFRET setup, first generation.
 """
 
 import os
+
 import numpy as np
 
 from ..utils.misc import pprint
-
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  DATA LOADING
@@ -25,7 +25,7 @@ def read_int32_int32_file(fname, n_bytes_to_read=-1):
     """Read the data file with 32+32 bit format (int32 version)."""
     try:
         f = open(fname, 'rb')
-    except IOError:
+    except OSError:
         fname += '.dat'
         f = open(fname, 'rb')
 

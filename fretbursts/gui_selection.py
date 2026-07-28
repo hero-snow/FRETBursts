@@ -10,14 +10,14 @@ Used by `hist2d_alex() and other functions in `burst_plot.py.
 """
 
 import numpy as np
+from matplotlib.patches import Ellipse, Rectangle
 from scipy.stats import mode
-from matplotlib.patches import Rectangle, Ellipse
 
-from .utils.misc import pprint
 from . import burstlib_ext as bext
+from .utils.misc import pprint
 
 
-class GuiSelection(object):
+class GuiSelection:
     """Abstract class for range selection in a matplotlib axis.
 
     Methods on_press_draw(), on_motion_draw() and on_release_print() must
@@ -142,7 +142,7 @@ class rectSelection(GuiSelection):
                 (E1,E2,S1,S2))
 
 
-class MultiAxPointSelection(object):
+class MultiAxPointSelection:
     """Class for point selection on a multi-axes plot.
 
     Used to select/print bursts by clicking in timetrace_ and ratetrace_ plots.

@@ -9,11 +9,10 @@ Currently mostly just smoke tests
 Running tests requires pytest
 """
 
-from collections import namedtuple
 from itertools import product
-import pytest
-import numpy as np
 
+import numpy as np
+import pytest
 
 try:
     import matplotlib
@@ -34,17 +33,16 @@ else:
 import fretbursts.background as bg
 import fretbursts.burstlib as bl
 import fretbursts.burstlib_ext as bext
-from fretbursts.burstlib import Data
 from fretbursts import loader
-from fretbursts import select_bursts
+from fretbursts.burstlib import Data
 from fretbursts.ph_sel import Ph_sel
-from fretbursts.phtools import phrates
+
 if has_matplotlib:
-    import fretbursts.burst_plot as bplt
+    pass
 
 
 # data subdir in the notebook folder
-DATASETS_DIR = u'../notebooks/data/'
+DATASETS_DIR = '../notebooks/data/'
 
 
 def _alex_process(d):
@@ -92,7 +90,7 @@ def test_load_group():
     fn = [DATASETS_DIR + f for f in fn]
     d = loader.photon_hdf5(fn)
     assert d.nch == len(fn)
-    
+
 def load_dataset_grouped(process=True):
     fn = ['HP3_TE150_SPC630.hdf5', 'HP3_TE200_SPC630.hdf5', 'HP3_TE250_SPC630.hdf5', 'HP3_TE300_SPC630.hdf5']
     fn = [DATASETS_DIR + f for f in fn]
@@ -133,8 +131,8 @@ def data(request):
     d = load_func()
     return d
 
-@pytest.mark.parametrize("data_ch, process", product([load_dataset_1ch, 
-                                             load_dataset_1ch_nsalex, 
+@pytest.mark.parametrize("data_ch, process", product([load_dataset_1ch,
+                                             load_dataset_1ch_nsalex,
                                              load_dataset_8ch],
                                             [True, False]))
 def test_group_data(data_ch, process):

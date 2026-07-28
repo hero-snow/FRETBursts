@@ -1,4 +1,3 @@
-# encoding: utf-8
 #
 # FRETBursts - A single-molecule FRET burst analysis toolkit.
 #
