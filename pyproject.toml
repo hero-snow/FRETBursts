@@ -90,13 +90,9 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-# Legacy / demo / dead modules with undefined-name (F821) and star-import
-# noise. These are slated for the dead-code cleanup step (roadmap #6); silence
-# them here rather than churn code that is about to be removed or rewritten.
-"fretbursts/burst_plot_attic.py" = ["F821"]
+# Legacy modules with undefined-name (F821) noise from their demo/__main__
+# blocks. These modules are still imported by live code, so they are kept;
+# silence the demo-block findings rather than rewrite the blocks.
 "fretbursts/poisson_threshold.py" = ["F821"]
-"fretbursts/legacy_mode.py" = ["F403", "F405", "F821"]
 "fretbursts/fit/gaussian_fitting.py" = ["F821"]
-"fretbursts/fit/compare_gaussian_fit2.py" = ["F821"]
-"fretbursts/fit/exp_gauss_fitting.py" = ["F821"]
 "fretbursts/dataload/multi_ch_reader.py" = ["F821"]
