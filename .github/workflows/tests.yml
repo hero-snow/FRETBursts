@@ -1,85 +1,54 @@
 name: Tests
 
-on: [push, pull_request]
+# Fast, hermetic test run. No network access is needed at test time: the suite
+# builds synthetic Photon-HDF5 files (tests/synthdata.py + tests/conftest.py)
+# instead of downloading the real example datasets. Running the notebooks
+# against the real data is a separate, opt-in workflow (notebooks.yml) so that
+# a dead download URL cannot turn every pull request red.
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
-    runs-on: ${{matrix.os}}
+  test:
+    name: ${{ matrix.os }} / py${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
     strategy:
+      # Never let one red cell cancel the rest: a single unsupported
+      # interpreter used to hide the result of every other combination.
+      fail-fast: false
       matrix:
-        os: [ubuntu-22.04, windows-latest, macos-latest]
-        python-version: ["3.8", "3.10", "3.12"]
-        exclude:
-          - os: macOS-latest
-            python-version: "3.7"
-          - os: windows-latest
-            python-version: "3.7"           
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.10", "3.12", "3.14"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
+          # setuptools_scm derives the version from tags, so the full history
+          # (and its tags) must be present.
           fetch-depth: 0
-      # - name: Setup Python ${{matrix.python-version}}
-      #   uses: actions/setup-python@v4
-      #   with:
-      #     python-version: ${{matrix.python-version}}
-      - uses: conda-incubator/setup-miniconda@v3
-        with:
-          auto-update-conda: true
-          activate-environment: test
-          channels: conda-forge
-          python-version: ${{ matrix.python-version }}
-      - name: Upgrade pip
-        shell: bash -l {0}
-        run: python -m pip install --upgrade pip
-      - name: MacOS install hdf5 dependencies
-        if: runner.os == 'macOS'
-        run: |
-          brew install hdf5
-          export HDF5_DIR=/usr/local/
-          export BLOSC_DIR=/usr/local/
-      - name: Install Dependencies
-        shell: bash -l {0}
-        run: |
-          conda install -c conda-forge cython numpy numba nbconvert pytest jupyter scipy pandas matplotlib pytables phconvert lmfit pybroom seaborn setuptools pyqt
-      - name: Install project
-        shell: bash -l {0}
-        run: |
-          python -m pip install . 
-      - name: Download files Unix
-        if: runner.os != 'Windows'
-        shell: bash -l {0} 
-        run: |
-          cd notebooks
-          mkdir data
-          cd data
-          wget -N http://files.figshare.com/2182604/12d_New_30p_320mW_steer_3.hdf5
-          wget -N http://files.figshare.com/2182601/0023uLRpitc_NTP_20dT_0.5GndCl.hdf5
-          wget -N https://zenodo.org/record/5902313/files/HP3_TE150_SPC630.hdf5
-          wget -N https://zenodo.org/record/5902313/files/HP3_TE200_SPC630.hdf5
-          wget -N https://zenodo.org/record/5902313/files/HP3_TE250_SPC630.hdf5
-          wget -N https://zenodo.org/record/5902313/files/HP3_TE300_SPC630.hdf5
-          cd ../..
-      - name: Downlaod files Windows
-        if: runner.os == 'Windows'
-        shell: bash -l {0}
-        run: |
-          cd notebooks
-          mkdir data
-          cd data
-          curl.exe -L --output 12d_New_30p_320mW_steer_3.hdf5 --url http://files.figshare.com/2182604/12d_New_30p_320mW_steer_3.hdf5
-          curl.exe -L --output 0023uLRpitc_NTP_20dT_0.5GndCl.hdf5 --url http://files.figshare.com/2182601/0023uLRpitc_NTP_20dT_0.5GndCl.hdf5
-          curl.exe -L --output HP3_TE150_SPC630.hdf5 --url https://zenodo.org/record/5902313/files/HP3_TE150_SPC630.hdf5
-          curl.exe -L --output HP3_TE200_SPC630.hdf5 --url https://zenodo.org/record/5902313/files/HP3_TE200_SPC630.hdf5
-          curl.exe -L --output HP3_TE250_SPC630.hdf5 --url https://zenodo.org/record/5902313/files/HP3_TE250_SPC630.hdf5
-          curl.exe -L --output HP3_TE300_SPC630.hdf5 --url https://zenodo.org/record/5902313/files/HP3_TE300_SPC630.hdf5
-          cd ..
-          cd ..
 
-      - name: Test project
-        shell: bash -l {0}
-        run: |
-          cd notebooks
-          python nbrun.py .
-          cd ..
-          cd tests
-          python -m pytest
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      # --locked fails if uv.lock is stale w.r.t. pyproject.toml, so a
+      # dependency edit that forgot to re-lock is caught here rather than
+      # being silently resolved differently in CI than on a developer machine.
+      # The `scientific` extra brings matplotlib, which the plotting tests
+      # import; `gui` (PyQt5) is deliberately left out.
+      - name: Sync environment
+        run: uv sync --locked --extra scientific --python ${{ matrix.python-version }}
+
+      - name: Run tests
+        run: uv run --no-sync pytest -v
+        env:
+          MPLBACKEND: Agg

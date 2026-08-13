@@ -881,7 +881,7 @@ requires-dist = [
     { name = "pandas", specifier = ">=0.23" },
     { name = "phconvert", specifier = ">=0.8" },
     { name = "pyqt5", marker = "extra == 'gui'" },
-    { name = "scipy", specifier = ">=1.2" },
+    { name = "scipy", specifier = ">=1.6" },
     { name = "seaborn", specifier = ">=0.11.1" },
     { name = "tables", specifier = ">=3.5" },
 ]
