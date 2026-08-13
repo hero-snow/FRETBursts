@@ -113,12 +113,37 @@ def mkdir_p(path):
         else:
             raise exc
 
+# Magic bytes every HDF5 file starts with (HDF5 superblock signature).
+_HDF5_SIGNATURE = b'\x89HDF\r\n\x1a\n'
+
+
+def _download_is_valid(path):
+    """Return whether the file at `path` looks like a complete download.
+
+    Rejects empty files and, for HDF5 destinations, anything not starting with
+    the HDF5 signature. A failed download (an error page, a redirect stub, or
+    an interrupted transfer) otherwise lands on disk under the data file's
+    name and only surfaces much later as an opaque reader error.
+    """
+    if not os.path.isfile(path) or os.path.getsize(path) == 0:
+        return False
+    if os.path.splitext(path)[1].lower() in ('.hdf5', '.h5'):
+        with open(path, 'rb') as f:
+            return f.read(len(_HDF5_SIGNATURE)) == _HDF5_SIGNATURE
+    return True
+
+
 def download_file(url, save_dir='./'):
     """Download a file from `url` saving it to disk.
 
     The file name is taken from `url` and left unchanged.
     The destination dir can be set using `save_dir`
     (Default: the current dir).
+
+    An existing file is kept only if it passes a sanity check, so a previously
+    failed download is retried instead of being trusted forever. The transfer
+    goes to a temporary file and is moved into place only once complete, so an
+    interrupted download never leaves a partial file at the destination.
     """
     # Check if local path already exist
     fname = url.split('/')[-1]
@@ -127,20 +152,13 @@ def download_file(url, save_dir='./'):
 
     path = '/'.join([os.path.abspath(save_dir), fname])
     if os.path.exists(path):
-        print('File already on disk: %s \nDelete it to re-download.' % path)
-        return
+        if _download_is_valid(path):
+            print('File already on disk: %s \nDelete it to re-download.' % path)
+            return
+        print(f'Incomplete or corrupted file on disk, re-downloading: {path}')
 
     from urllib.error import HTTPError, URLError
-    from urllib.request import urlopen, urlretrieve
-
-    # Check if the URL is valid
-    try:
-        urlopen(url)
-    except URLError as e:
-        print('Wrong URL or no connection.\n\nError:\n%s\n' % e)
-    except HTTPError:
-        print('URL not found: ' + url)
-        return
+    from urllib.request import urlretrieve
 
     # Download the file
     def _report(blocknr, blocksize, size):
@@ -148,7 +166,35 @@ def download_file(url, save_dir='./'):
         sys.stdout.write(
             f"\rDownloaded {current:4.1f} / {size/2**20:4.1f} MB")
     mkdir_p(save_dir)
-    urlretrieve(url, path, _report)
+
+    # Download to a temporary name so a failure cannot clobber a good file
+    # nor leave a partial one that later looks like a finished download.
+    tmp_path = path + '.part'
+    try:
+        urlretrieve(url, tmp_path, _report)
+    except HTTPError as e:
+        _remove_if_exists(tmp_path)
+        print(f'\nURL not found (HTTP {e.code}): {url}')
+        return
+    except URLError as e:
+        _remove_if_exists(tmp_path)
+        print(f'\nWrong URL or no connection.\n\nError:\n{e}\n')
+        return
+
+    if not _download_is_valid(tmp_path):
+        _remove_if_exists(tmp_path)
+        print('\nThe download did not return a valid data file. '
+              f'The URL may be out of date:\n  {url}')
+        return
+
+    os.replace(tmp_path, path)
+
+
+def _remove_if_exists(path):
+    try:
+        os.remove(path)
+    except OSError:
+        pass
 
 def _large_equal(val0, val1):
     if type(val0) != type(val1):
