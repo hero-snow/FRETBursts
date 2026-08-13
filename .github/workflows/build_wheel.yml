@@ -1,33 +1,37 @@
 name: Build
 
+# This fork has no `master` branch (the default is `develop`), so the original
+# trigger meant this workflow never ran. Wheel building is slow and is not a
+# useful gate on every pull request, so it runs on pushes to `develop` and on
+# demand.
 on:
   push:
     branches:
-      - master
-  pull_request:
-    branches:
-      - master
+      - develop
+  workflow_dispatch:
 
 jobs:
   build_wheels:
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-22.04, windows-2022, macos-13, macos-14]
+        os: [ubuntu-latest, windows-latest, macos-13, macos-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
+          # setuptools_scm derives the version from tags.
           fetch-depth: 0
+
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.18.1
+        uses: pypa/cibuildwheel@v3.2.0
         env:
-          CIBW_SKIP: "pp*"
-          # CIBW_TEST_REQUIRES: pytest, numpy == 1.20.1, matplotlib, scipy, pandas, tables, numba, seaborn, lmfit, phconvert
-          # CIBW_BEFORE_TEST: python -m pip install pytest
-          # CIBW_TEST_COMMAND: python -m pytest {package}/tests
-      
+          # PyPy has no numba/pytables wheels; CPython 3.10 is the project's
+          # minimum (see requires-python in pyproject.toml).
+          CIBW_SKIP: "pp* cp36-* cp37-* cp38-* cp39-*"
+
       - uses: actions/upload-artifact@v4
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}

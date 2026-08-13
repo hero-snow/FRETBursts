@@ -1,0 +1,73 @@
+name: Notebooks
+
+# Runs every example notebook against the *real* datasets, which have to be
+# downloaded from figshare and zenodo (~hundreds of MB).
+#
+# This is deliberately kept out of the pull-request path:
+#   - it is slow, and
+#   - it fails whenever an external download URL rots, which says nothing
+#     about the change under review.
+# The weekly schedule is what catches that URL rot; `tests.yml` stays offline
+# and green.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Mondays, 03:00 UTC.
+    - cron: '0 3 * * 1'
+
+jobs:
+  notebooks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+          # setuptools_scm derives the version from tags.
+          fetch-depth: 0
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Sync environment
+        run: uv sync --locked --extra scientific
+
+      # The datasets are intentionally not cached: detecting a dead URL is the
+      # main reason this workflow exists, and a cache hit would hide it.
+      - name: Download example datasets
+        run: |
+          mkdir -p notebooks/data
+          cd notebooks/data
+          for url in \
+            https://ndownloader.figshare.com/files/2182604/12d_New_30p_320mW_steer_3.hdf5 \
+            https://ndownloader.figshare.com/files/2182601/0023uLRpitc_NTP_20dT_0.5GndCl.hdf5 \
+            https://zenodo.org/record/5902313/files/HP3_TE150_SPC630.hdf5 \
+            https://zenodo.org/record/5902313/files/HP3_TE200_SPC630.hdf5 \
+            https://zenodo.org/record/5902313/files/HP3_TE250_SPC630.hdf5 \
+            https://zenodo.org/record/5902313/files/HP3_TE300_SPC630.hdf5 \
+          ; do
+            echo "::group::$url"
+            curl -fL --retry 3 --retry-delay 5 -O "$url"
+            echo "::endgroup::"
+          done
+          ls -l
+
+      # pybroom is used by a single notebook ("Example - FRET histogram
+      # fitting"), not by the library, so it is pulled in here rather than
+      # declared as a project dependency.
+      - name: Execute notebooks
+        run: uv run --no-sync --with pybroom python nbrun.py .
+        working-directory: notebooks
+        env:
+          MPLBACKEND: Agg
+
+      - name: Upload executed notebooks
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: executed-notebooks
+          path: notebooks/out/
+          if-no-files-found: warn
