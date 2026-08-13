@@ -17,7 +17,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-13, macos-latest]
+        # macos-13 was the Intel runner, but GitHub has retired that image: a
+        # job requesting it is never assigned a runner and simply queues until
+        # it is cancelled. macos-latest is arm64, and CIBW_ARCHS_MACOS below
+        # cross-compiles the x86_64 wheels from it instead.
+        os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v5
         with:
@@ -26,13 +30,22 @@ jobs:
           fetch-depth: 0
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.2.0
+        uses: pypa/cibuildwheel@v3.2.2
         env:
-          # PyPy has no numba/pytables wheels; CPython 3.10 is the project's
-          # minimum (see requires-python in pyproject.toml).
-          CIBW_SKIP: "pp* cp36-* cp37-* cp38-* cp39-*"
+          # Both macOS architectures come off the one arm64 runner. The
+          # cross-compiled x86_64 wheels cannot be executed there, but this
+          # workflow does not run the wheels' tests anyway (the test suite is
+          # covered by tests.yml), so nothing is lost.
+          CIBW_ARCHS_MACOS: "x86_64 arm64"
+          # No CIBW_SKIP: cibuildwheel reads requires-python (">= 3.10") from
+          # pyproject.toml and selects cp310-cp314 on its own. The previous
+          # skip list was dead weight -- cibuildwheel 3.x rejected 'cp36-*',
+          # 'cp37-*' and 'pp*' as invalid selectors and warned about all three.
 
-      - uses: actions/upload-artifact@v4
+      # v4 runs on Node 20, which the runners now force onto Node 24 with a
+      # deprecation warning; v7 targets Node 24 natively. Our inputs (name,
+      # path) are unchanged across those majors.
+      - uses: actions/upload-artifact@v7
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
