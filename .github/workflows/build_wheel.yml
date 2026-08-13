@@ -30,7 +30,7 @@ jobs:
           fetch-depth: 0
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.2.2
+        uses: pypa/cibuildwheel@v3.2.1
         env:
           # Both macOS architectures come off the one arm64 runner. The
           # cross-compiled x86_64 wheels cannot be executed there, but this
