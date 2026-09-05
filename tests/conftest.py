@@ -5,7 +5,6 @@ Created on Wed Feb 18 12:02:27 2026
 
 @author: paul
 """
-import pooch
 import pytest
 import os
 
@@ -24,18 +23,6 @@ DATASETS_DIR = u'data/'
 # mphmm = pooch.create(path=DATASETS_DIR, base_url='doi:10.5281/zenodo.5902313')
 # mphmm.load_registry_from_doi()
 
-fetchers = dict()
-
-def fetch_if(name:str, doi:str)->str:
-    fn = DATASETS_DIR + name
-    if not os.path.exists(fn):
-        if doi not in fetchers:
-            fetch = pooch.create(path=DATASETS_DIR, base_url=doi)
-            fetch.load_registry_from_doi()
-            fetchers[doi] = fetch
-        fetchers[doi].fetch(name)
-    return fn
-
 
 def _alex_process(d):
     loader.alex_apply_period(d)
@@ -44,7 +31,7 @@ def _alex_process(d):
 
 
 def load_dataset_1ch(process=True):
-    fname = fetch_if("0023uLRpitc_NTP_20dT_0.5GndCl.hdf5", 'doi:10.5281/zenodo.20038738')
+    fname = DATASETS_DIR + "0023uLRpitc_NTP_20dT_0.5GndCl.hdf5"
     d = loader.photon_hdf5(fname)
     if process:
         _alex_process(d)
@@ -52,7 +39,7 @@ def load_dataset_1ch(process=True):
 
 
 def load_dataset_1ch_nsalex(process=True):
-    fname = fetch_if("HP3_TE150_SPC630.hdf5", 'doi:10.5281/zenodo.5902313')
+    fname = DATASETS_DIR + "HP3_TE150_SPC630.hdf5"
     d = loader.photon_hdf5(fname)
     if process:
         _alex_process(d)
@@ -60,10 +47,10 @@ def load_dataset_1ch_nsalex(process=True):
 
 @pytest.fixture
 def dataset_1ch_file():
-    return fetch_if("0023uLRpitc_NTP_20dT_0.5GndCl.hdf5", 'doi:10.5281/zenodo.20038738')
+    return DATASETS_DIR + "0023uLRpitc_NTP_20dT_0.5GndCl.hdf5"
 
 def load_dataset_8ch():
-    fname = fetch_if("12d_New_30p_320mW_steer_3.hdf5", 'doi:10.5281/zenodo.20038738')
+    fname = DATASETS_DIR + "12d_New_30p_320mW_steer_3.hdf5"
     d = loader.photon_hdf5(fname)
     d.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
     d.burst_search(L=10, m=10, F=7)
@@ -71,10 +58,10 @@ def load_dataset_8ch():
 
 @pytest.fixture
 def fake_pax_file():
-    return fetch_if("0023uLRpitc_NTP_20dT_0.5GndCl.hdf5", 'doi:10.5281/zenodo.20038738')
+    return DATASETS_DIR + "0023uLRpitc_NTP_20dT_0.5GndCl.hdf5"
 
 def load_fake_pax():
-    fname = fetch_if("0023uLRpitc_NTP_20dT_0.5GndCl.hdf5", 'doi:10.5281/zenodo.20038738')
+    fname = DATASETS_DIR + "0023uLRpitc_NTP_20dT_0.5GndCl.hdf5"
     d = loader.photon_hdf5(fname)
     d.add(ALEX=False, meas_type='PAX')
     loader.alex_apply_period(d)
@@ -85,7 +72,7 @@ def load_fake_pax():
     
 def load_dataset_grouped(process=True):
     fn = ['HP3_TE150_SPC630.hdf5', 'HP3_TE200_SPC630.hdf5']
-    fn = [fetch_if(f, 'doi:10.5281/zenodo.5902313') for f in fn]
+    fn = [DATASETS_DIR + f for f in fn]
     d = loader.photon_hdf5(fn)
     if process:
         _alex_process(d)
