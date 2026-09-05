@@ -222,7 +222,7 @@ def burst_ph_stats(ph_data, bursts, func=np.mean, func_kw=None, **kwargs):
     burst_stats = []
     for burst_ph in iter_bursts_ph(ph_data, bursts, **kwargs):
         burst_stats.append(func(burst_ph, **func_kw))
-    return np.asarray(burst_stats, dtype=np.float64)  # NOTE: asfarray converts None to nan
+    return np.asarray(burst_stats, dtype=np.float64)  # NOTE: asarray converts None to nan
 
 
 def ph_in_bursts_mask(ph_data_size, bursts):
@@ -483,29 +483,36 @@ class DataContainer(dict):
     """
     def __init__(self, **kwargs):
         dict.__init__(self, **kwargs)
-        for k in self:
-            dict.__setattr__(self, k, self[k])
+    
+    def __getattr__(self, attr):
+        if attr not in self:
+            raise AttributeError(f"Attribute {attr} has not been set in {type(self).__name__}")
+        return self[attr]
 
+    def __setattr__(self, attr, value):
+        if hasattr(self, attr) and attr not in self:
+            super().__setattr__(attr, value)
+        else:
+            self[attr] = value
+        
     def add(self, **kwargs):
         """Adds or updates elements (attributes and/or dict entries). """
         self.update(**kwargs)
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-
+    
     def delete(self, *args, **kwargs):
         """Delete an element (attribute and/or dict entry). """
         warning = kwargs.get('warning', True)
         for name in args:
-            try:
+            if name in self:
                 self.pop(name)
-            except KeyError:
-                if warning:
-                    print(' WARNING: Name %s not found (dict).' % name)
-            try:
-                delattr(self, name)
-            except AttributeError:
-                if warning:
-                    print(' WARNING: Name %s not found (attr).' % name)
+            elif warning:
+                print(' WARNING: Name %s not found (dict).' % name)
+    
+    def __delattr__(self, name):
+        if name in self:
+            self.pop(name, None)
+        else:
+            super().__delattr__(name)
 
 
 class Data(DataContainer):
@@ -1309,9 +1316,7 @@ class Data(DataContainer):
             if name in self:
                 self.delete(name)
         for name in ('E_fitter', 'S_fitter'):
-            if hasattr(self, name):
-                delattr(self, name)
-
+            self.pop(name, None)
     ##
     # Methods for high-level data transformation
     #
@@ -1346,8 +1351,7 @@ class Data(DataContainer):
 
         # Delete eventual cached properties
         for attr in ['_time_min', '_time_max']:
-            if hasattr(new_d, attr):
-                delattr(new_d, attr)
+            new_d.pop(attr, None)
         return new_d
 
     def collapse(self, update_gamma=True, skip_ch=None):
@@ -1403,9 +1407,9 @@ class Data(DataContainer):
             dc._update_gamma(np.mean(self.get_gamma_array()))
         return dc
 
-    ##
-    # Utility methods
-    #
+    ###########################################################################
+    ### Utility methods
+    ###########################################################################
     def get_params(self):
         """Returns a plain dict containing only parameters and no arrays.
         This can be used as a summary of data analysis parameters.
@@ -1686,11 +1690,9 @@ class Data(DataContainer):
         # Attributes specific of manual or 'auto' bg fit
         field_list = ['bg_auto_th_us0', 'bg_auto_F_bg', 'bg_th_us_user']
         for field in field_list:
-            if field in self:
-                self.delete(field)
-        if hasattr(self, '_bg_mean'):
-            delattr(self, '_bg_mean')
-
+            self.pop(field, None)
+        self.pop('_bg_mean', None)
+    
     def _get_num_periods(self, time_s):
         """Return the number of periods using `time_s` as period duration.
         """
@@ -2949,9 +2951,10 @@ class Data(DataContainer):
     def name(self):
         """Measurement name: last subfolder + file name with no extension."""
         if not hasattr(self, '_name'):
-            basename = str(os.path.splitext(os.path.basename(self.fname))[0])
+            fname = self.fname if isinstance(self.fname, str) else self.fname[0]
+            basename = str(os.path.splitext(os.path.basename(fname))[0])
             name = basename
-            last_dir = str(os.path.basename(os.path.dirname(self.fname)))
+            last_dir = str(os.path.basename(os.path.dirname(fname)))
             if len(last_dir) > 0:
                 name = '_'.join([last_dir, basename])
             self.add(_name=name)
