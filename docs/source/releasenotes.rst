@@ -4,7 +4,7 @@ FRETBursts Release Notes
 .. module:: fretbursts
 
 
-Version 0.9.1 (Sep 2026)
+Version 0.9.2 (Sep 2026)
 ------------------------
 
 - Fixes for numpy 2.0 compatibility (properly tested, unlike in 0.8.3)
