@@ -1,6 +1,13 @@
 FRETBursts
 ==========
 
+> **This fork is frozen (2026-09-18).** Upstream declared FRETBursts end-of-life in
+> release 0.9.2 in favour of [smfBursts](https://github.com/OpenSMFS/smfBursts)
+> (MIT, same maintainer). Work continues in a fork of smfBursts. The decision is
+> backed by `tools/compare_smfbursts.py`, which runs the same us-ALEX pipeline in
+> both packages: loaders and correction math agree, population-level E/S results
+> agree; only burst-search conventions differ (see the script's docstring).
+
 [![DOI](https://zenodo.org/badge/5991/tritemio/FRETBursts.svg)](https://zenodo.org/badge/latestdoi/5991/tritemio/FRETBursts)
 [![Tests](https://github.com/OpenSMFS/FRETBursts/actions/workflows/tests.yml/badge.svg)](https://github.com/OpenSMFS/FRETBursts/actions)
 [![Documentation Status](https://readthedocs.org/projects/fretbursts/badge/?version=latest)](https://fretbursts.readthedocs.io/en/latest/?badge=latest)
