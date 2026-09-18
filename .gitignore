@@ -38,3 +38,6 @@ _*
 docs/source/modules/generated
 .mcp.json
 .spec-checker-logs/
+# tools/compare_smfbursts.py downloads and outputs
+data/
+compare_out*/
